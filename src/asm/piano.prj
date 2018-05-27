@@ -1,0 +1,68 @@
+; ************************************************************
+; PROJECT:
+; AUTHOR:
+; ************************************************************
+
+; Micro + software running
+; ------------------------------------------------------------
+.MICRO "ATmega16"
+.PROGRAM "piano.asm"
+.TARGET "piano.hex"
+
+.TRACE              ; Activate micro trace
+
+; Following lines are optional; if not included
+; exactly these values are taken by default
+; ------------------------------------------------------------
+.POWER VDD=5 VSS=0  ; Power nodes
+.CLOCK 1meg         ; Micro clock
+.STORE 250m         ; Trace (micro+signals) storage time
+
+; Micro nodes: RESET, AREF, PA0-PA7, PB0-PB7, PC0-PC7, PD0-PD7, ACO, TIM1OVF
+; Define here the hardware around the micro
+; ------------------------------------------------------------
+
+X1  LCD(16 2 250K) PD0 PD1 PD2 PB7 PB6 PB5 PB4 PB3 PB2 PB1 PB0
+;SW1
+K0 VDD PC7
+R0 PC7 VSS 10K
+;SW2
+K1 VDD PC6
+R1 PC6 VSS 10K
+;SW3
+K2 VDD PC5
+R2 PC5 VSS 10K
+;SW4
+K3 VDD PC4
+R3 PC4 VSS 10K
+;SW5
+K4 VDD PC3
+R4 PC3 VSS 10K
+;SW6
+K5 VDD PC2
+R5 PC2 VSS 10K
+;SW7
+K6 VDD PC1
+R6 PC1 VSS 10K
+;SW8
+K7 VDD PC0
+R7 PC0 VSS 10K
+;SW9
+K8 VDD PD7
+R8 PD7 VSS  10K
+;SW10
+K9 VDD PD6
+R9 PD6 VSS  10K
+
+;botones para la octava
+KE VDD PA1
+R11 PA1 VSS 10K
+KF VDD PA0
+R12 PA0 VSS 10K
+
+.plot V(PD5)
+
+
+
+
+

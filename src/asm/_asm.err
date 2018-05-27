@@ -1,0 +1,17 @@
+Creating   'piano.eep'
+Creating   'piano.hex'
+Creating   'piano.obj'
+Creating   'piano.lis'
+Creating   'piano.map'
+
+Assembling 'piano.asm'
+Including  'C:\VMLAB\include\m8def.inc'
+
+Program memory usage:
+Code             :  507 words
+Constants (dw/db):  192 words
+Unused           :    0 words
+Total            :  699 words
+
+Assembly complete with no errors.
+Deleting   'piano.eep'

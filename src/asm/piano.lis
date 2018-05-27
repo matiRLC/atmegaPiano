@@ -1,0 +1,1571 @@
+
+AVRASM ver. 1.74  piano.asm Fri Nov 11 21:02:41 2011
+
+
+         ; ******************************************************
+         ; Proyect: Piano with LCD panel
+         ; Author:  Matias Quintana Rosales
+         ; Purpose: Xmas-Shally
+         ; Date:    inicio - 05/10/11
+         ;		     fin    -
+         ;          fecha de entrega - 22/12/11
+         ; ******************************************************
+         
+          .include "C:\VMLAB\include\m8def.inc"
+         ;***************************************************************************
+         ;* A P P L I C A T I O N   N O T E   F O R   T H E   A V R   F A M I L Y
+         ;* 
+         ;* Number				:AVR000
+         ;* File Name			:"m8def.inc"
+         ;* Title				:Register/Bit Definitions for the ATmega8
+         ;* Date                 :07.09.2001
+         ;* Version              :1.00
+         ;* Support telephone	:+47 72 88 43 88 (ATMEL Norway)
+         ;* Support fax			:+47 72 88 43 99 (ATMEL Norway)
+         ;* Support E-mail		:avr@atmel.no
+         ;* Target MCU			:ATmega8
+         ;*
+         ;* DESCRIPTION
+         ;* When including this file in the assembly program file, all I/O register	
+         ;* names and I/O register bit names appearing in the data book can be used.
+         ;* In addition, the six registers forming the three data pointers X, Y and
+         ;* Z have been assigned names XL - ZH. Highest RAM address for Internal 
+         ;* SRAM is also defined 
+         ;*
+         ;* The Register names are represented by their hexadecimal address.
+         ;* 
+         ;* The Register Bit names are represented by their bit number (0-7).
+         ;* 
+         ;* Please observe the difference in using the bit names with instructions
+         ;* such as "sbr"/"cbr" (set/clear bit in register) and "sbrs"/"sbrc" 
+         ;* (skip if bit in register set/cleared). The following example illustrates
+         ;* this:
+         ;* 
+         ;* in	r16,PORTB				;read PORTB latch
+         ;* sbr	r16,(1<<PB6)+(1<<PB5)	;set PB6 and PB5 (use masks, not bit#)
+         ;* out  PORTB,r16				;output to PORTB
+         ;*
+         ;* in	r16,TIFR				;read the Timer Interrupt Flag Register
+         ;* sbrc	r16,TOV0				;test the overflow flag (use bit#)
+         ;* rjmp	TOV0_is_set				;jump if set
+         ;* ...							;otherwise do something else
+         ;***************************************************************************
+         
+         ;***** Specify Device
+          .device ATmega8
+         
+         ;***** I/O Register Definitions
+          .equ	SREG	=$3f
+          .equ	SPH		=$3e
+          .equ	SPL		=$3d
+          .equ	GIMSK	=$3b
+          .equ	GICR	=$3b		; new name for GIMSK
+          .equ	GIFR	=$3a
+          .equ	TIMSK	=$39
+          .equ	TIFR	=$38
+          .equ	SPMCR	=$37
+          .equ    I2CR    =$36
+          .equ    TWCR    =$36
+          .equ    MCUCR   =$35
+          .equ    MCUSR   =$34		; For compatibility, 
+          .equ    MCUCSR  =$34		; keep both names until further
+          .equ	TCCR0	=$33
+          .equ	TCNT0	=$32
+          .equ    OSCCAL  =$31
+          .equ    SFIOR   =$30
+          .equ	TCCR1A	=$2f
+          .equ	TCCR1B	=$2e
+          .equ	TCNT1H	=$2d
+          .equ	TCNT1L	=$2c
+          .equ	OCR1AH	=$2b
+          .equ	OCR1AL	=$2a
+          .equ	OCR1BH	=$29
+          .equ	OCR1BL	=$28
+          .equ	ICR1H	=$27
+          .equ	ICR1L	=$26
+          .equ	TCCR2	=$25
+          .equ	TCNT2	=$24
+          .equ	OCR2	=$23
+          .equ	ASSR	=$22
+          .equ	WDTCR	=$21
+          .equ    UBRRH   =$20		;  Note! UCSRC equals UBRRH
+          .equ	EEARH	=$1f
+          .equ	EEARL	=$1e
+          .equ	EEDR	=$1d
+          .equ	EECR	=$1c
+          .equ	PORTB	=$18
+          .equ	DDRB	=$17
+          .equ	PINB	=$16
+          .equ	PORTC	=$15
+          .equ	DDRC	=$14
+          .equ	PINC	=$13
+          .equ	PORTD	=$12
+          .equ	DDRD	=$11
+          .equ	PIND	=$10
+          .equ	SPDR	=$0f
+          .equ	SPSR	=$0e
+          .equ	SPCR	=$0d
+          .equ	UDR	=$0c
+          .equ	UCSRA	=$0b
+          .equ	UCSRB	=$0a
+          .equ	UCSRC	=$20		;  Note! UCSRC equals UBRRH
+          .equ	UBRRL	=$09
+          .equ	ACSR	=$08
+          .equ    ADMUX   =$07
+          .equ    ADCSR   =$06
+          .equ    ADCH    =$05
+          .equ    ADCL    =$04
+          .equ    I2DR    =$03
+          .equ    I2AR    =$02
+          .equ    I2SR    =$01
+          .equ    I2BR    =$00
+          .equ    TWDR    =$03
+          .equ    TWAR    =$02
+          .equ    TWSR    =$01
+          .equ    TWBR    =$00
+         
+         
+         
+         ;***** Bit Definitions
+         ;GICR  (former GIMSK)
+          .equ	INT1	=7
+          .equ	INT0	=6
+          .equ	IVSEL	=1		; interrupt vector select
+          .equ	IVCE	=0		; interrupt vector change enable
+         
+         ;GIFR
+          .equ	INTF1	=7
+          .equ	INTF0	=6
+         
+         ;TIMSK
+          .equ    TOIE0   =0
+          .equ    TOIE1   =2
+          .equ    OCIE1B  =3
+          .equ    OCIE1A  =4
+          .equ    TICIE1  =5
+          .equ    TOIE2   =6
+          .equ    OCIE2   =7
+         
+         ;TIFR
+          .equ    TOV0    =0
+          .equ    TOV1    =2
+          .equ    OCF1B   =3
+          .equ    OCF1A   =4
+          .equ    ICF1    =5
+          .equ    TOV2    =6
+          .equ    OCF2    =7
+         
+         ;SPMCR
+          .equ	SPMIE	=7
+          .equ	RWWSB	=6
+          .equ	RWWSRE	=4
+          .equ	BLBSET	=3
+          .equ	PGWRT	=2
+          .equ	PGERS	=1
+          .equ	SPMEN	=0
+         
+         ;MCUCR
+          .equ    SE      =7
+          .equ    SM2     =6
+          .equ    SM1     =5
+          .equ    SM0     =4
+          .equ    ISC11   =3
+          .equ    ISC10   =2
+          .equ    ISC01   =1
+          .equ    ISC00   =0
+         
+         ;MCUCSR
+          .equ    WDRF    =3
+          .equ    BORF    =2
+          .equ    EXTRF   =1
+          .equ    PORF    =0
+         
+         ;TCCR0
+          .equ	CS02	=2
+          .equ	CS01	=1
+          .equ	CS00	=0
+         
+         ;TCCR1A
+          .equ	COM1A1	=7
+          .equ	COM1A0	=6
+          .equ	COM1B1	=5
+          .equ	COM1B0	=4
+          .equ	FOC1A	=3
+          .equ	FOC1B	=2
+          .equ	PWM11	=1	; OBSOLETE! Use WGM11
+          .equ	PWM10	=0	; OBSOLETE! Use WGM10
+          .equ	WGM11	=1
+          .equ	WGM10	=0
+         ;TCCR1B
+          .equ	ICNC1	=7
+          .equ	ICES1	=6
+          .equ	CTC11	=4	; OBSOLETE! Use WGM13
+          .equ	CTC10	=3	; OBSOLETE! Use WGM12
+          .equ	WGM13	=4
+          .equ	WGM12	=3	
+          .equ	CTC1	=3		; Obsolete - Included for backward compatibility
+          .equ	CS12	=2
+          .equ	CS11	=1
+          .equ	CS10	=0
+         
+         ;TCCR2
+          .equ	FOC2	=7
+          .equ    PWM2    =6	; OBSOLETE! Use WGM20
+          .equ	WGM20	=6	
+          .equ    COM21   =5
+          .equ    COM20   =4
+          .equ    CTC2    =3	; OBSOLETE! Use WGM21
+          .equ	WGM21	=3	
+          .equ    CS22    =2
+          .equ    CS21    =1
+          .equ    CS20    =0
+         
+         ;SFIOR
+          .equ    ADHSM   =4
+          .equ    ACME    =3
+          .equ    PUD     =2
+          .equ	PSR2	=1
+          .equ	PSR10	=0
+         
+         ;WDTCR
+          .equ	WDCE	=4
+          .equ	WDTOE	=4
+          .equ	WDE	=3
+          .equ	WDP2	=2
+          .equ	WDP1	=1
+          .equ	WDP0	=0
+         
+         ;EECR
+          .equ    EERIE   =3
+          .equ	EEMWE	=2
+          .equ	EEWE	=1
+          .equ	EERE	=0
+         
+         ;PORTB
+          .equ	PB7	=7
+          .equ	PB6	=6
+          .equ	PB5	=5
+          .equ	PB4	=4
+          .equ	PB3	=3
+          .equ	PB2	=2
+          .equ	PB1	=1
+          .equ	PB0	=0
+         
+         ;DDRB
+          .equ	DDB7	=7
+          .equ	DDB6	=6
+          .equ	DDB5	=5
+          .equ	DDB4	=4
+          .equ	DDB3	=3
+          .equ	DDB2	=2
+          .equ	DDB1	=1
+          .equ	DDB0	=0
+         
+         ;PINB
+          .equ	PINB7	=7
+          .equ	PINB6	=6
+          .equ	PINB5	=5
+          .equ	PINB4	=4
+          .equ	PINB3	=3
+          .equ	PINB2	=2
+          .equ	PINB1	=1
+          .equ	PINB0	=0
+         
+         ;PORTC
+          .equ	PC6	=6
+          .equ	PC5	=5
+          .equ	PC4	=4
+          .equ	PC3	=3
+          .equ	PC2	=2
+          .equ	PC1	=1
+          .equ	PC0	=0
+         
+         ;DDRC
+          .equ	DDC6	=6
+          .equ	DDC5	=5
+          .equ	DDC4	=4
+          .equ	DDC3	=3
+          .equ	DDC2	=2
+          .equ	DDC1	=1
+          .equ	DDC0	=0
+         
+         ;PINC
+          .equ	PINC6	=6
+          .equ	PINC5	=5
+          .equ	PINC4	=4
+          .equ	PINC3	=3
+          .equ	PINC2	=2
+          .equ	PINC1	=1
+          .equ	PINC0	=0
+         
+         ;PORTD
+          .equ	PD7	=7
+          .equ	PD6	=6
+          .equ	PD5	=5
+          .equ	PD4	=4
+          .equ	PD3	=3
+          .equ	PD2	=2
+          .equ	PD1	=1
+          .equ	PD0	=0
+         
+         ;DDRD
+          .equ	DDD7	=7
+          .equ	DDD6	=6
+          .equ	DDD5	=5
+          .equ	DDD4	=4
+          .equ	DDD3	=3
+          .equ	DDD2	=2
+          .equ	DDD1	=1
+          .equ	DDD0	=0
+         
+         ;PIND
+          .equ	PIND7	=7
+          .equ	PIND6	=6
+          .equ	PIND5	=5
+          .equ	PIND4	=4
+          .equ	PIND3	=3
+          .equ	PIND2	=2
+          .equ	PIND1	=1
+          .equ	PIND0	=0
+         
+         ;UCSRA
+          .equ	RXC	=7
+          .equ	TXC	=6
+          .equ	UDRE	=5
+          .equ	FE	=4
+          .equ	OR	=3		; old name kept for compatibilty
+          .equ	DOR	=3
+          .equ	UPE	=2
+          .equ	PE	=2
+          .equ	U2X	=1
+          .equ	MPCM	=0
+         
+         ;UCSRB
+          .equ	RXCIE	=7
+          .equ	TXCIE	=6
+          .equ	UDRIE	=5
+          .equ	RXEN	=4
+          .equ	TXEN	=3
+          .equ	CHR9	=2		; old name kept for compatibilty
+          .equ	UCSZ2	=2
+          .equ	RXB8	=1
+          .equ	TXB8	=0
+         
+         ;UCSRC
+          .equ	URSEL	=7
+          .equ	UMSEL	=6
+          .equ	UPM1	=5
+          .equ	UPM0	=4
+          .equ	USBS	=3
+          .equ	UCSZ1	=2
+          .equ	UCSZ0	=1
+          .equ	UCPOL	=0
+         		
+         ;SPCR
+          .equ	SPIE	=7
+          .equ	SPE	=6
+          .equ	DORD	=5
+          .equ	MSTR	=4
+          .equ	CPOL	=3
+          .equ	CPHA	=2
+          .equ	SPR1	=1
+          .equ	SPR0	=0
+         
+         ;SPSR
+          .equ	SPIF	=7
+          .equ	WCOL	=6
+          .equ	SPI2X	=0
+         
+         ;ACSR
+          .equ	ACD	=7
+          .equ    ACBG    =6
+          .equ	ACO	=5
+          .equ	ACI	=4
+          .equ	ACIE	=3
+          .equ	ACIC	=2
+          .equ	ACIS1	=1
+          .equ	ACIS0	=0
+         
+         ;ADMUX
+          .equ    REFS1   =7
+          .equ    REFS0   =6
+          .equ    ADLAR   =5
+          .equ    MUX3    =3
+          .equ    MUX2    =2
+          .equ    MUX1    =1
+          .equ    MUX0    =0
+         
+         ;ADCSR
+          .equ    ADEN    =7
+          .equ    ADSC    =6
+          .equ    ADFR    =5
+          .equ    ADIF    =4
+          .equ    ADIE    =3
+          .equ    ADPS2   =2
+          .equ    ADPS1   =1
+          .equ    ADPS0   =0
+         
+         ; TWCR
+          .equ    TWINT   =7
+          .equ    TWEA    =6
+          .equ    TWSTA   =5
+          .equ    TWSTO   =4
+          .equ    TWWC    =3
+          .equ    TWEN    =2
+         
+          .equ    TWIE    =0
+         
+         ; TWAR
+          .equ    TWA6    =7
+          .equ    TWA5    =6
+          .equ    TWA4    =5
+          .equ    TWA3    =4
+          .equ    TWA2    =3
+          .equ    TWA1    =2
+          .equ    TWA0    =1
+          .equ    TWGCE   =0
+         
+         ; TWSR
+          .equ    TWS7    =7
+          .equ    TWS6    =6
+          .equ    TWS5    =5
+          .equ    TWS4    =4
+          .equ    TWS3    =3
+          .equ	TWPS1	=1
+          .equ	TWPS0	=0
+         
+         ;ASSR
+          .equ    AS2     =3
+          .equ    TCN2UB  =2
+          .equ    OCR2UB  =1
+          .equ    TCR2UB  =0
+         
+          .def	XL	=r26
+          .def	XH	=r27
+          .def	YL	=r28
+          .def	YH	=r29
+          .def	ZL	=r30
+          .def	ZH	=r31
+         
+          .equ 	RAMEND =$45F
+          .equ	FLASHEND =$FFF
+         
+         						;  byte groups
+         						;  /\/--\/--\/--\ 
+          .equ 	SMALLBOOTSTART	=0b00111110000000  ;($0F80) smallest boot block is 256
+          .equ 	SECONDBOOTSTART	=0b00111100000000  ;($0F00) 2'nd boot block size is 512
+          .equ 	THIRDBOOTSTART	=0b00111000000000  ;($0E00) third boot block size is 1K
+          .equ 	LARGEBOOTSTART	=0b00110000000000  ;($0C00) largest boot block is 2K
+          .equ 	BOOTSTART		=THIRDBOOTSTART  ;OBSOLETE!!! kept for compatibility
+          .equ	PAGESIZE		=32     ;number of WORDS in a page
+         
+          .equ	INT0addr=$001	; External Interrupt0 Vector Address
+          .equ	INT1addr=$002	; External Interrupt1 Vector Address
+          .equ	OC2addr =$003	; Output Compare2 Interrupt Vector Address
+          .equ	OVF2addr=$004	; Overflow2 Interrupt Vector Address
+          .equ	ICP1addr=$005	; Input Capture1 Interrupt Vector Address
+          .equ	OC1Aaddr=$006	; Output Compare1A Interrupt Vector Address
+          .equ	OC1Baddr=$007	; Output Compare1B Interrupt Vector Address
+          .equ	OVF1addr=$008	; Overflow1 Interrupt Vector Address
+          .equ	OVF0addr=$009	; Overflow0 Interrupt Vector Address
+          .equ	SPIaddr =$00a	; SPI Interrupt Vector Address
+          .equ	URXCaddr=$00b	; USART Receive Complete Interrupt Vector Address
+          .equ	UDREaddr=$00c	; USART Data Register Empty Interrupt Vector Address
+          .equ	UTXCaddr=$00d	; USART Transmit Complete Interrupt Vector Address
+          .equ	ADCCaddr=$00e	; ADC Interrupt Vector Address
+          .equ	ERDYaddr=$00f	; EEPROM Interrupt Vector Address
+          .equ	ACIaddr =$010	; Analog Comparator Interrupt Vector Address
+          .equ    TWIaddr =$011   ; Irq. vector address for Two-Wire Interface
+          .equ	SPMaddr =$012	; SPM complete Interrupt Vector Address
+          .equ	SPMRaddr =$012	; SPM complete Interrupt Vector Address
+         
+          .equ ddra = $1A
+          .equ porta = $1B
+          .equ pina = $19
+         ;Variables para LCD
+          .def dato = r20
+          .def instruccion = r21
+         ;Variables para Notas
+          .def temp_oct_textl = r18
+          .def temp_oct_texth = r19
+          .def octava = r22
+          .def switch = r23
+          .def freq = r24
+         
+         ;xl = low(freqa*2)  a = {1,2,3,4,5,6,7,8}
+         ;xh = high(freqa*2)
+         
+          reset:
+000000 c0c0         rjmp start
+         
+000001      titulo:    .db "    Shally's    "
+000001 2020
+000002 2020
+000003 6853
+000004 6c61
+000005 796c
+000006 7327
+000007 2020
+000008 2020
+000009      titulo2:   .db "     Piano      "
+000009 2020
+00000a 2020
+00000b 5020
+00000c 6169
+00000d 6f6e
+00000e 2020
+00000f 2020
+000010 2020
+000011      octava1:   .db "    Octava 1    "
+000011 2020
+000012 2020
+000013 634f
+000014 6174
+000015 6176
+000016 3120
+000017 2020
+000018 2020
+000019      octava2:   .db "    Octava 2    "
+000019 2020
+00001a 2020
+00001b 634f
+00001c 6174
+00001d 6176
+00001e 3220
+00001f 2020
+000020 2020
+000021      octava3:   .db "    Octava 3    "
+000021 2020
+000022 2020
+000023 634f
+000024 6174
+000025 6176
+000026 3320
+000027 2020
+000028 2020
+000029      octava4:   .db "    Octava 4    "
+000029 2020
+00002a 2020
+00002b 634f
+00002c 6174
+00002d 6176
+00002e 3420
+00002f 2020
+000030 2020
+000031      octava5:   .db "    Octava 5    "
+000031 2020
+000032 2020
+000033 634f
+000034 6174
+000035 6176
+000036 3520
+000037 2020
+000038 2020
+000039      octava6:   .db "    Octava 6    "
+000039 2020
+00003a 2020
+00003b 634f
+00003c 6174
+00003d 6176
+00003e 3620
+00003f 2020
+000040 2020
+000041      octava7:   .db "    Octava 7    "
+000041 2020
+000042 2020
+000043 634f
+000044 6174
+000045 6176
+000046 3720
+000047 2020
+000048 2020
+000049      octava8:   .db "    Octava 8    "
+000049 2020
+00004a 2020
+00004b 634f
+00004c 6174
+00004d 6176
+00004e 3820
+00004f 2020
+000050 2020
+000051      nota1:     .db "       Re       "
+000051 2020
+000052 2020
+000053 2020
+000054 5220
+000055 2065
+000056 2020
+000057 2020
+000058 2020
+000059      nota2:     .db "       Mi       "
+000059 2020
+00005a 2020
+00005b 2020
+00005c 4d20
+00005d 2069
+00005e 2020
+00005f 2020
+000060 2020
+000061      nota3:     .db "       Fa       "
+000061 2020
+000062 2020
+000063 2020
+000064 4620
+000065 2061
+000066 2020
+000067 2020
+000068 2020
+000069      nota4:     .db "       Sol      "
+000069 2020
+00006a 2020
+00006b 2020
+00006c 5320
+00006d 6c6f
+00006e 2020
+00006f 2020
+000070 2020
+000071      nota5:     .db "       La       "
+000071 2020
+000072 2020
+000073 2020
+000074 4c20
+000075 2061
+000076 2020
+000077 2020
+000078 2020
+000079      nota6:     .db "       Si       "
+000079 2020
+00007a 2020
+00007b 2020
+00007c 5320
+00007d 2069
+00007e 2020
+00007f 2020
+000080 2020
+000081      nota7:     .db "       Do       "
+000081 2020
+000082 2020
+000083 2020
+000084 4420
+000085 206f
+000086 2020
+000087 2020
+000088 2020
+         
+         ;Las frecuencias ya se encuentran justas para ser enviadas por OCR1A
+         ;               Re    Mi    Fa   Sol    La    Si   Do
+000089      freq1:   .dw  6848, 6097, 5746, 5101, 4544, 4064, 7692
+000089 1ac0
+00008a 17d1
+00008b 1672
+00008c 13ed
+00008d 11c0
+00008e 0fe0
+00008f 1e0c
+000090      freq2:   .dw  3400, 3029, 2856, 2550, 2272, 2023, 3816
+000090 0d48
+000091 0bd5
+000092 0b28
+000093 09f6
+000094 08e0
+000095 07e7
+000096 0ee8
+000097      freq3:   .dw  1700, 1514, 1432, 1275, 1135, 1011, 1907
+000097 06a4
+000098 05ea
+000099 0598
+00009a 04fb
+00009b 046f
+00009c 03f3
+00009d 0773
+00009e      freq4:   .dw   851,  758,  716,  637,  567,  505,  956
+00009e 0353
+00009f 02f6
+0000a0 02cc
+0000a1 027d
+0000a2 0237
+0000a3 01f9
+0000a4 03bc
+0000a5      freq5:   .dw   425,  378,  357,  318,  285,  252,  478
+0000a5 01a9
+0000a6 017a
+0000a7 0165
+0000a8 013e
+0000a9 011d
+0000aa 00fc
+0000ab 01de
+0000ac      freq6:   .dw   212,  189,  178,  159,  142,  126,  238
+0000ac 00d4
+0000ad 00bd
+0000ae 00b2
+0000af 009f
+0000b0 008e
+0000b1 007e
+0000b2 00ee
+0000b3      freq7:   .dw   105,   94,   88,   79,   70,   62,  118
+0000b3 0069
+0000b4 005e
+0000b5 0058
+0000b6 004f
+0000b7 0046
+0000b8 003e
+0000b9 0076
+0000ba      freq8:   .dw    53,   46,   43,   39,   35,   31,   59
+0000ba 0035
+0000bb 002e
+0000bc 002b
+0000bd 0027
+0000be 0023
+0000bf 001f
+0000c0 003b
+         
+         ;******************************************************************************
+         ;******************************************************************************
+         ;*************************** PROGRAMA PRINCIPAL *******************************
+         ;******************************************************************************
+         ;******************************************************************************
+         
+         ;Display 00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16
+         ;Line 1  00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10
+         ;Line 2  40 41 42 43 44 45 46 47 48 49 4A 4B 4C 4D 4E 4F 50
+         
+         ;instruction code to position the cursor = 80h
+         
+          start:
+0000c1 e004      	ldi r16, high(ramend)
+0000c2 bf0e      	out sph, r16
+0000c3 e50f      	ldi r16, low(ramend)
+0000c4 bf0d      	out spl,r16
+0000c5 d073      	rcall Configurar_Puertos
+0000c6 d0ec      	rcall Configurar_Timer
+0000c7 d093      	rcall RetardoXms
+0000c8 d09e      	rcall Configurar_LCD
+0000c9 e063         ldi octava, 3  ; Iniciamos todo en la 3era octava
+0000ca d079         rcall Frase_Default
+         
+         ;AQUI COMIENZA EL LOOP INFINITO!!!
+          lectura_teclas:
+         
+         ;Comenzamos a leer todas las entradas 		
+         		
+         ; PC7 PC6 PC5 PC4 PC3 PC2 PC1 PC0 PD7 PD6
+         ; Re   Mi  Fa Sol  La  Si  Do  Re  Mi  Fa
+         ; SW1	SW2 SW3 SW4 SW5 SW6 SW7 SW8 SW9 SW10
+         	
+         ;Colocamos el cursor en la primera posicion	
+0000cb d0d3      	rcall CheckBF
+         
+0000cc e850         ldi instruccion, $80
+0000cd d0b7      	rcall WriteIR
+         	
+         ;*** MODIFICACIONES DE OCTAVA ****	
+         	;decremento de octava
+0000ce b309         in r16, pina
+0000cf 7001         andi r16, 0b00000001 ;PA0
+0000d0 3001         cpi r16,  0b00000001
+0000d1 f009         breq decremento_octava_pulsado
+0000d2 c005         rjmp sigue_octava
+          decremento_octava_pulsado:
+0000d3 b309         in r16, pina
+0000d4 7001         andi r16, 0b00000001
+0000d5 3001         cpi r16, 0b00000001
+0000d6 f3e1         breq decremento_octava_pulsado ;sigue presionado
+0000d7 c037         rjmp decremento_octava
+          sigue_octava:
+            ;incremento de octava
+0000d8 b309         in r16, pina
+0000d9 7002         andi r16, 0b00000010
+0000da 3002         cpi r16,  0b00000010 ;PA1
+0000db f009         breq incremento_octava_pulsado
+0000dc c005         rjmp sigue_leyendo
+          incremento_octava_pulsado:
+0000dd b309      	in r16, pina
+0000de 7002      	andi r16, 0b00000010
+0000df 3002      	cpi r16,  0b00000010
+0000e0 f3e1      	breq incremento_octava_pulsado ;sigue presionado
+0000e1 c033      	rjmp incremento_octava
+         
+          sigue_leyendo:
+         ;*** LECTURA DE TECLAS ***	
+         	;primera tecla	
+0000e2 b303      	in r16, pinc	
+0000e3 7800      	andi r16, 0b10000000
+0000e4 3800      	cpi r16, 0b10000000
+0000e5 f1a9      	breq nota_sw1
+         	;segunda tecla
+0000e6 b303      	in r16, pinc
+0000e7 7400      	andi r16, 0b01000000
+0000e8 3400      	cpi r16, 0b01000000
+0000e9 f1a1      	breq nota_sw2
+         	;tercera tecla
+0000ea b303      	in r16, pinc
+0000eb 7200      	andi r16, 0b00100000
+0000ec 3200      	cpi r16, 0b00100000
+0000ed f199      	breq nota_sw3
+         	;cuarta tecla
+0000ee b303      	in r16, pinc
+0000ef 7100      	andi r16, 0b00010000
+0000f0 3100      	cpi r16, 0b00010000
+0000f1 f191      	breq nota_sw4
+         	;quinta tecla
+0000f2 b303      	in r16, pinc
+0000f3 7008      	andi r16, 0b00001000
+0000f4 3008      	cpi r16, 0b00001000
+0000f5 f189      	breq nota_sw5
+         	;sexta tecla
+0000f6 b303      	in r16, pinc
+0000f7 7004      	andi r16, 0b00000100
+0000f8 3004      	cpi r16, 0b00000100
+0000f9 f181      	breq nota_sw6
+         	;setima tecla
+0000fa b303      	in r16, pinc
+0000fb 7002      	andi r16, 0b00000010
+0000fc 3002      	cpi r16, 0b00000010
+0000fd f179      	breq nota_sw7
+         	;octava tecla
+0000fe b303      	in r16, pinc
+0000ff 7001      	andi r16, 0b00000001
+000100 3001      	cpi r16, 0b00000001
+000101 f171      	breq nota_sw8
+         	;novena tecla
+000102 b300      	in r16, pind
+000103 7800      	andi r16, 0b10000000
+000104 3800      	cpi r16, 0b10000000
+000105 f169      	breq nota_sw9
+         	;decima tecla
+000106 b300      	in r16, pind
+000107 7400      	andi r16, 0b01000000
+000108 3400      	cpi r16, 0b01000000
+000109 f161      	breq nota_sw10	
+         ;Si no se presiona ninguna tecla, no se emite ningun sonido
+00010a e000      	ldi r16, 0
+00010b bd0b      	out ocr1ah, r16
+00010c bd0a      	out ocr1al, r16
+         
+00010d d036      	rcall Frase_Default
+00010e cfbc      	rjmp lectura_teclas
+         		
+         ;OCTAVAS!	
+          decremento_octava:
+00010f 3061      	cpi octava, 1
+000110 f011      	breq tope_minimo
+000111 956a         dec octava
+000112 cfb8         rjmp lectura_teclas
+          tope_minimo:
+000113 e061         ldi octava, 1
+000114 cfb6         rjmp lectura_teclas
+            	
+          incremento_octava:
+000115 3068      	cpi octava, 8
+000116 f011      	breq tope_maximo
+000117 9563      	inc octava
+000118 cfb2      	rjmp lectura_teclas
+          tope_maximo:
+000119 e068      	ldi octava, 8
+00011a cfb0      	rjmp lectura_teclas
+         			
+         ;NOTAS!
+          nota_sw1:
+00011b e071      	ldi switch, 1
+00011c d0ea      	rcall Get_Freq
+00011d cfad      	rjmp lectura_teclas
+         	
+          nota_sw2:
+00011e e072      	ldi switch, 2
+00011f d0e7      	rcall Get_Freq
+000120 cfaa      	rjmp lectura_teclas
+          nota_sw3:
+000121 e073      	ldi switch, 3
+000122 d0e4      	rcall Get_Freq
+000123 cfa7      	rjmp lectura_teclas
+          nota_sw4:
+000124 e074      	ldi switch, 4
+000125 d0e1      	rcall Get_Freq
+000126 cfa4      	rjmp lectura_teclas
+          nota_sw5:
+000127 e075      	ldi switch, 5
+000128 d0de      	rcall Get_Freq
+000129 cfa1      	rjmp lectura_teclas
+          nota_sw6:
+00012a e076      	ldi switch, 6
+00012b d0db      	rcall Get_Freq
+00012c cf9e      	rjmp lectura_teclas
+          nota_sw7:
+00012d e077      	ldi switch, 7
+00012e d0d8      	rcall Get_Freq
+00012f cf9b      	rjmp lectura_teclas
+          nota_sw8:
+000130 e078      	ldi switch, 8
+000131 d0d5      	rcall Get_Freq
+000132 cf98      	rjmp lectura_teclas
+          nota_sw9:
+000133 e079      	ldi switch, 9
+000134 d0d2      	rcall Get_Freq
+000135 cf95      	rjmp lectura_teclas
+          nota_sw10:
+000136 e07a      	ldi switch, 10
+000137 d0cf      	rcall Get_Freq
+000138 cf92         rjmp lectura_teclas
+         
+         
+         ;******************************************************************************
+         ;******************************************************************************
+         ;*************************** CONFIGURAR PUERTOS *******************************
+         ;******************************************************************************
+         ;******************************************************************************
+         
+          Configurar_Puertos:
+         
+000139 930f      	push r16
+         	
+00013a e000      	ldi r16, $00
+00013b bb0a      	out ddra, r16       ; PORTA ENTRADA
+00013c e30f      	ldi r16, 0b00111111	;PD7 y PD6 teclas
+00013d bb01      	out ddrd, r16 ; PD5 = OC1A salida, PD0 = RS, PD1 = R/W, PD2 = E
+00013e ef0f      	ldi r16, $FF
+00013f bb07      	out ddrb, r16 ; portB = bus de datos
+000140 e000      	ldi r16, $00
+000141 bb04      	out ddrc, r16 ; PORTC teclas
+000142 910f      	pop r16
+000143 9508      	ret
+         
+         ;******************************************************************************
+         ;******************************************************************************
+         ;**************************** FRASE DEFAULT ***********************************
+         ;******************************************************************************
+         ;******************************************************************************
+          Frase_Default:
+         
+         	;Mandamos la frase que estara por default	
+000144 e0f0      	ldi zh, high(titulo*2)
+000145 e0e2      	ldi zl, low(titulo*2)
+000146 e100         ldi r16, 16
+          leer_otro_caracter_linea1:
+         
+000147 d057      	rcall CheckBF
+000148 9145      	lpm dato, Z+
+000149 d047      	rcall WriteDR
+00014a 950a      	dec r16
+00014b 3000         cpi r16, 0
+00014c f7d1         brne leer_otro_caracter_linea1
+         
+         ;Aqui comienza la instruccion para escribir en la linea2
+         	
+            ;El inicio de la linea2 es 80h + 40h = C0h
+         
+00014d d051         rcall CheckBF
+         
+00014e ec50         ldi instruccion, $C0
+00014f d035      	rcall WriteIR
+         	
+000150 d04e      	rcall CheckBF
+         		
+000151 e1e2      	ldi zl, low(titulo2*2)
+000152 e0f0      	ldi zh, high(titulo2*2)
+000153 e100      	ldi r16, 16
+          leer_otro_caracter_linea2:	
+         	
+000154 d04a      	rcall CheckBF
+000155 9145      	lpm dato, Z+
+000156 d03a      	rcall WriteDR
+000157 950a      	dec r16
+000158 3000      	cpi r16, 0
+000159 f7d1      	brne leer_otro_caracter_linea2
+00015a 9508      	ret
+         	
+         ;******************************************************************************
+         ;******************************************************************************
+         ;**************************** RETARDO DE X MS *********************************
+         ;******************************************************************************
+         ;******************************************************************************	
+         
+          RetardoXms:
+         
+00015b 930f      	push r16
+00015c 931f      	push r17
+00015d 2700      	clr r16
+         
+          lazo_ext:
+         
+00015e 2711      	clr r17
+         
+          lazo_int:
+         
+00015f 9513      	inc r17
+000160 f7f1      	brne lazo_int
+000161 9503      	inc r16
+000162 330c      	cpi r16, 60
+000163 f7d1      	brne lazo_ext
+000164 911f      	pop r17
+000165 910f      	pop r16
+000166 9508      	ret
+         
+         
+         ;******************************************************************************
+         ;******************************************************************************
+         ;***************************** CONFIGURAR LCD *********************************
+         ;******************************************************************************
+         ;******************************************************************************	
+         
+          Configurar_LCD:
+         
+000167 930f      	push r16
+000168 931f      	push r17
+000169 dff1      	rcall RetardoXms
+         	
+00016a e350      	ldi instruccion, $30 ; Configuracion de 8 bits
+00016b d019      	rcall WriteIR
+         	
+00016c dfee      	rcall RetardoXms
+         		
+00016d e350      	ldi instruccion, $30
+00016e d016      	rcall WriteIR
+         	
+00016f dfeb      	rcall RetardoXms
+         	
+000170 e350         ldi instruccion, $30
+000171 d013      	rcall WriteIR
+         	
+000172 dfe8      	rcall RetardoXms
+         	
+         ;Funcion SET: activa funcion: 0 0 1 DL N F x x
+         
+         ;										DL = 1 -> 8 bits;     DL = 0 -> 4 bits
+         ;										N  = 0 -> una linea;   N = 1 -> dos lineas
+         ;										F  = 0 -> 5x7 puntos;  F = 1 -> 5x10 puntos
+000173 e35c      	ldi instruccion, 0b00111100
+000174 d010      	rcall WriteIR
+         	
+000175 d029      	rcall CheckBF
+         	
+000176 e058      	ldi instruccion, 8       ;Display OFF
+000177 d00d      	rcall WriteIR
+         	
+000178 d026      	rcall CheckBF
+         	
+000179 e051      	ldi instruccion, 1       ;Clear display									
+00017a d00a      	rcall WriteIR
+         	
+00017b d023      	rcall CheckBF
+         	
+         ;Funcion Seleccionar modo: 0 0 0 0 0 1 ID S
+         
+         ;										ID = 1 -> incrementa la direccion DDRAM
+         ;										ID = 0 -> decrementa
+         ;										 S = 1 -> desplazamiento de toda la pantalla
+         ;													 (con ID = 1 desplaz. a la izquierda
+         ;                                        con ID = 0 desplaz. a la derecha
+         ;										 S = 0 -> no desplaza
+         
+00017c e056      	ldi instruccion, 0b00000110
+00017d d007      	rcall WriteIR      ;Cursor sin desplazamiento
+         	
+         ;Funcion ON/OFF del LCD: 0 0 0 0 1 D C B
+         
+         ;										D = 0 -> apagar la pantalla; D = 1 -> encender
+         ;										C = 0 -> desactivar cursor;  C = 1 -> activar
+         ;										B = 0 -> no parpadea el caracter senhalado por
+         ;													el cursor
+00017e d020      	rcall CheckBF
+         	
+00017f e05c      	ldi instruccion, 0b00001100  ;Enciende pantalla y no muestra cursor
+000180 d004      	rcall WriteIR
+         	
+000181 d01d      	rcall CheckBF
+         	
+000182 911f      	pop r17
+000183 910f      	pop r16
+000184 9508      	ret
+         
+         ;******************************************************************************
+         ;******************************************************************************
+         ;**************************** READ/WRITE **************************************
+         ;******************************************************************************
+         ;******************************************************************************
+         
+                                    ;PD2 = E, PD1 = R/W, PD0 = RS
+          WriteIR:
+         	
+000185 931f      	push r17
+000186 e010      	ldi r17, 0b000 ; E = 0, R/W = 0, RS = 0
+000187 bb12      	out portd, r17
+000188 e014      	ldi r17, 0b100 ; E = 1, R/W = 0, RS = 0
+000189 bb12      	out portd, r17
+         	
+00018a bb58      	out portb, instruccion
+         	
+00018b e010      	ldi r17, 0b000 ; E = 0, R/W = 0, RS = 0
+00018c bb12      	out portd, r17
+00018d e012      	ldi r17, 0b010 ; E = 0, R/W = 1, RS = 0
+00018e bb12      	out portd, r17
+         	
+00018f 911f      	pop r17
+000190 9508      	ret
+         	
+          WriteDR:
+         	
+000191 930f      	push r16
+000192 931f      	push r17
+         	
+000193 e001      	ldi r16, 0b001 ; E = 0, R/W = 0, RS = 1	
+000194 bb02      	out portd, r16
+000195 e005      	ldi r16, 0b101 ; E = 1, R/W = 0, RS = 1	
+000196 bb02      	out portd, r16
+         	
+000197 bb48      	out portb, dato
+         	
+000198 e001      	ldi r16, 0b001 ; E = 0, R/W = 0, RS = 1	
+000199 bb02      	out portd, r16
+00019a e002      	ldi r16, 0b010 ; E = 0, R/W = 1, RS = 0
+00019b bb02      	out portd, r16
+         	
+00019c 911f      	pop r17
+00019d 910f      	pop r16
+00019e 9508      	ret
+         	
+         ;******************************************************************************
+         ;******************************************************************************
+         ;***************************** BUSY FLAG **************************************
+         ;******************************************************************************
+         ;******************************************************************************
+         
+         	
+          CheckBF:
+         	
+00019f 930f      	push r16
+0001a0 931f      	push r17
+         	
+0001a1 e000      	ldi r16, 0  ; Bus de datos: entrada
+0001a2 bb07      	out ddrb, r16
+         	
+          LecturaBF:
+         	
+0001a3 e002      	ldi r16, 0b010 ; E = 0, R/W = 1, RS = 0
+0001a4 bb02      	out portd, r16
+0001a5 e006      	ldi r16, 0b110 ; E = 1, R/W = 1, RS = 0		
+0001a6 bb02      	out portd, r16
+0001a7 0000      	nop
+0001a8 b316      	in r17, pinb   ; analiza el BF
+         	
+0001a9 e002      	ldi r16, 0b010 ; E = 0, R/W = 1, RS = 0
+0001aa bb02      	out portd, r16
+         	
+0001ab 7810      	andi r17, 0b10000000
+0001ac 3010      	cpi r17, 0
+0001ad f7a9      	brne LecturaBF ;Si el LCD esta ocupado -> espera
+         	
+0001ae ef0f      	ldi r16, $FF   ;Bus de datos: salida
+0001af bb07      	out ddrb, r16
+         	
+0001b0 911f      	pop r17
+0001b1 910f      	pop r16
+0001b2 9508      	ret
+         
+         ;******************************************************************************
+         ;******************************************************************************
+         ;*************************** CONFIGURAR_TIMER *********************************
+         ;******************************************************************************
+         ;******************************************************************************
+         ;                           Modo CTC con OCR1A
+         ;                 0<<WGM13 1<<WGM12  0<<WGM11 0<<WGM10
+         ;
+         ;                          Preescalador = 1
+         ;                       0<<CS12 0<<CS11 1<<CS10
+         ;
+         ;                      interrupciones habilitadas
+         ;                              1<<OCIE1A
+         ;
+         ;                    generador de ondas habilitado
+         ;                          0<<COM1A1 1<<COM1A0
+         
+          Configurar_Timer:
+0001b3 930f      	push r16
+0001b4 e400      	ldi r16, (0<<COM1A1)|(1<<COM1A0)|(0<<WGM11)|(0<<WGM10)
+0001b5 bd0f      	out TCCR1A, r16
+0001b6 e009      	ldi r16, (0<<WGM13) |(1<<WGM12) | (1<<CS10)
+0001b7 bd0e      	out TCCR1B, r16
+0001b8 e30f      	ldi r16, 0b00111111	;PD7 y PD6 teclas
+0001b9 bb01      	out ddrd, r16 ; PD5 = OC1A salida, PD0 = RS, PD1 = R/W, PD2 = E
+0001ba e000      	ldi r16, 0
+0001bb bd0a      	out OCR1AL, r16
+0001bc bd0b      	out OCR1AH, r16
+0001bd 910f      	pop r16
+0001be 9508      	ret
+         
+         ;******************************************************************************
+         ;******************************************************************************
+         ;***************************** GET OCTAVA *************************************
+         ;******************************************************************************
+         ;******************************************************************************
+         
+          Get_Octava:
+         	
+0001bf 3061      	cpi octava, 1
+0001c0 f071      	breq oct1
+0001c1 3062      	cpi octava, 2
+0001c2 f099      	breq oct2
+0001c3 3063      	cpi octava, 3
+0001c4 f0c1      	breq oct3
+0001c5 3064      	cpi octava, 4
+0001c6 f0e9      	breq oct4
+0001c7 3065      	cpi octava, 5
+0001c8 f111      	breq oct5
+0001c9 3066      	cpi octava, 6
+0001ca f139      	breq oct6
+0001cb 3067      	cpi octava, 7
+0001cc f161      	breq oct7
+0001cd 3068      	cpi octava, 8
+0001ce f189      	breq oct8
+         	
+          oct1:
+0001cf e0f0      	ldi zh, high(octava1*2)
+0001d0 e2e2      	ldi zl, low(octava1*2)
+0001d1 2f2e      	mov temp_oct_textl, zl ;Almacenamos temporalmente la direccion en tabla
+0001d2 2f3f      	mov temp_oct_texth, zh ;para luego ser mandada por LCD
+0001d3 e0f1      	ldi zh, high(freq1*2)
+0001d4 e1e2      	ldi zl, low(freq1*2)
+0001d5 9508      	ret
+         	
+          oct2:
+0001d6 e0f0      	ldi zh, high(octava2*2)
+0001d7 e3e2      	ldi zl, low(octava2*2)
+0001d8 2f2e      	mov temp_oct_textl, zl ;Almacenamos temporalmente la direccion en tabla
+0001d9 2f3f      	mov temp_oct_texth, zh ;para luego ser mandada por LCD
+0001da e0f1      	ldi zh, high(freq2*2)
+0001db e2e0      	ldi zl, low(freq2*2)
+0001dc 9508      	ret
+         	
+          oct3:
+0001dd e0f0      	ldi zh, high(octava3*2)
+0001de e4e2      	ldi zl, low(octava3*2)
+0001df 2f2e      	mov temp_oct_textl, zl ;Almacenamos temporalmente la direccion en tabla
+0001e0 2f3f      	mov temp_oct_texth, zh ;para luego ser mandada por LCD
+0001e1 e0f1      	ldi zh, high(freq3*2)
+0001e2 e2ee      	ldi zl, low(freq3*2)
+0001e3 9508      	ret
+         	
+          oct4:
+0001e4 e0f0      	ldi zh, high(octava4*2)
+0001e5 e5e2      	ldi zl, low(octava4*2)
+0001e6 2f2e      	mov temp_oct_textl, zl ;Almacenamos temporalmente la direccion en tabla
+0001e7 2f3f      	mov temp_oct_texth, zh ;para luego ser mandada por LCD
+0001e8 e0f1      	ldi zh, high(freq4*2)
+0001e9 e3ec      	ldi zl, low(freq4*2)
+0001ea 9508      	ret
+         	
+          oct5:
+0001eb e0f0      	ldi zh, high(octava5*2)
+0001ec e6e2      	ldi zl, low(octava5*2)
+0001ed 2f2e      	mov temp_oct_textl, zl ;Almacenamos temporalmente la direccion en tabla
+0001ee 2f3f      	mov temp_oct_texth, zh ;para luego ser mandada por LCD
+0001ef e0f1      	ldi zh, high(freq5*2)
+0001f0 e4ea      	ldi zl, low(freq5*2)
+0001f1 9508      	ret
+         	
+          oct6:
+0001f2 e0f0      	ldi zh, high(octava6*2)
+0001f3 e7e2      	ldi zl, low(octava6*2)
+0001f4 2f2e      	mov temp_oct_textl, zl ;Almacenamos temporalmente la direccion en tabla
+0001f5 2f3f      	mov temp_oct_texth, zh ;para luego ser mandada por LCD
+0001f6 e0f1      	ldi zh, high(freq6*2)
+0001f7 e5e8      	ldi zl, low(freq6*2)
+0001f8 9508      	ret
+         	
+          oct7:
+0001f9 e0f0      	ldi zh, high(octava7*2)
+0001fa e8e2      	ldi zl, low(octava7*2)
+0001fb 2f2e      	mov temp_oct_textl, zl ;Almacenamos temporalmente la direccion en tabla
+0001fc 2f3f      	mov temp_oct_texth, zh ;para luego ser mandada por LCD
+0001fd e0f1      	ldi zh, high(freq7*2)
+0001fe e6e6      	ldi zl, low(freq7*2)
+0001ff 9508      	ret
+         	
+          oct8:
+000200 e0f0      	ldi zh, high(octava8*2)
+000201 e9e2      	ldi zl, low(octava8*2)
+000202 2f2e      	mov temp_oct_textl, zl ;Almacenamos temporalmente la direccion en tabla
+000203 2f3f      	mov temp_oct_texth, zh ;para luego ser mandada por LCD
+000204 e0f1      	ldi zh, high(freq8*2)
+000205 e7e4      	ldi zl, low(freq8*2)
+000206 9508         ret
+         
+         ;******************************************************************************
+         ;******************************************************************************
+         ;*************************** GET FREQUENCY ************************************
+         ;******************************************************************************
+         ;******************************************************************************
+         
+          Get_Freq:
+         
+000207 936f       	push octava ;como vamos a modificarlo en algunos switches
+          	
+          compara_switch:
+000208 3071         cpi switch,1
+000209 f0c1         breq sw1
+00020a 3072      	cpi switch,2
+00020b f111      	breq sw2
+00020c 3073      	cpi switch,3
+00020d f169      	breq sw3
+00020e 3074      	cpi switch,4
+00020f f1c1      	breq sw4
+000210 3075      	cpi switch,5
+000211 f051      	breq sw5i
+000212 3076      	cpi switch,6
+000213 f049      	breq sw6i
+000214 3077      	cpi switch,7
+000215 f041      	breq sw7i
+000216 3078      	cpi switch,8
+000217 f039      	breq sw8i
+000218 3079      	cpi switch,9
+000219 f031      	breq sw9i
+00021a 307a      	cpi switch,10
+00021b f029      	breq sw10i
+          sw5i:
+00021c c038      	rjmp sw5
+          sw6i:
+00021d c044      	rjmp sw6
+          sw7i:
+00021e c050      	rjmp sw7	
+          sw8i:	
+00021f c05c      	rjmp sw8
+          sw9i:
+000220 c067      	rjmp sw9
+          sw10i:
+000221 c073      	rjmp sw10
+         		
+          sw1:
+000222 3067      	cpi octava, 7
+000223 f008      	brlo sigue_sw1
+000224 e067      	ldi octava, 7
+          sigue_sw1:
+000225 df99      	rcall Get_Octava	
+000226 e000      	ldi r16, 0
+000227 0fe0      	add zl, r16
+000228 1fe0      	adc zl, r16
+000229 91a5      	lpm xl, z+
+00022a 91b4      	lpm xh, z
+00022b eae2      	ldi zl, low(nota1*2)
+00022c e0f0      	ldi zh, high(nota1*2)
+00022d c074      	rjmp fin_sw
+         	
+          sw2:
+00022e 3067      	cpi octava, 7
+00022f f008      	brlo sigue_sw2
+000230 e067      	ldi octava, 7
+          sigue_sw2:	
+000231 df8d      	rcall Get_Octava
+000232 e002      	ldi r16, 2
+000233 0fe0      	add zl, r16
+000234 e000      	ldi r16, 0
+000235 1ff0      	adc zh, r16
+000236 91a5      	lpm xl, z+
+000237 91b4      	lpm xh, z
+000238 ebe2      	ldi zl, low(nota2*2)
+000239 e0f0      	ldi zh, high(nota2*2)
+00023a c067      	rjmp fin_sw
+         	
+          sw3:
+00023b 3067      	cpi octava, 7
+00023c f008      	brlo sigue_sw3
+00023d e067      	ldi octava, 7
+          sigue_sw3:
+00023e df80      	rcall Get_Octava	
+00023f e004      	ldi r16, 4
+000240 0fe0      	add zl, r16
+000241 e000      	ldi r16, 0
+000242 1ff0      	adc zh, r16
+000243 91a5      	lpm xl, z+
+000244 91b4      	lpm xh, z	
+000245 ece2      	ldi zl, low(nota3*2)
+000246 e0f0      	ldi zh, high(nota3*2)
+000247 c05a      	rjmp fin_sw
+         	
+          sw4:
+000248 3067      	cpi octava, 7
+000249 f008      	brlo sigue_sw4
+00024a e067      	ldi octava, 7
+          sigue_sw4:	
+00024b df73      	rcall Get_Octava
+00024c e006      	ldi r16, 6
+00024d 0fe0      	add zl, r16
+00024e e000      	ldi r16, 0
+00024f 1ff0      	adc zh, r16
+000250 91a5      	lpm xl, z+
+000251 91b4      	lpm xh, z
+000252 ede2      	ldi zl, low(nota4*2)
+000253 e0f0      	ldi zh, high(nota4*2)
+000254 c04d      	rjmp fin_sw
+         	
+          sw5:
+000255 3067      	cpi octava, 7
+000256 f008      	brlo sigue_sw5
+000257 e067      	ldi octava, 7
+          sigue_sw5:	
+000258 df66      	rcall Get_Octava
+000259 e008      	ldi r16, 8
+00025a 0fe0      	add zl, r16
+00025b e000      	ldi r16, 0
+00025c 1ff0      	adc zh, r16
+00025d 91a5      	lpm xl, z+
+00025e 91b4      	lpm xh, z
+00025f eee2      	ldi zl, low(nota5*2)
+000260 e0f0      	ldi zh, high(nota5*2)
+000261 c040      	rjmp fin_sw
+         	
+          sw6:
+000262 3067      	cpi octava, 7
+000263 f008      	brlo sigue_sw6
+000264 e067      	ldi octava, 7
+          sigue_sw6:	
+000265 df59      	rcall Get_Octava
+000266 e00a      	ldi r16, 10
+000267 0fe0      	add zl, r16
+000268 e000      	ldi r16, 0
+000269 1ff0      	adc zh, r16
+00026a 91a5      	lpm xl, z+
+00026b 91b4      	lpm xh, z
+00026c efe2      	ldi zl, low(nota6*2)
+00026d e0f0      	ldi zh, high(nota6*2)
+00026e c033      	rjmp fin_sw
+         	
+          sw7:
+00026f 3068      	cpi octava, 8
+000270 f009      	breq sigue_sw7
+000271 9563      	inc octava
+          sigue_sw7:	
+000272 df4c      	rcall Get_Octava
+000273 e00c      	ldi r16, 12
+000274 0fe0      	add zl, r16
+000275 e000      	ldi r16, 0
+000276 1ff0      	adc zh, r16
+000277 91a5      	lpm xl, z+
+000278 91b4      	lpm xh, z
+000279 e0e2      	ldi zl, low(nota7*2)
+00027a e0f1      	ldi zh, high(nota7*2)
+00027b c026      	rjmp fin_sw
+         
+          sw8:      ;las unicas 3 notas que van en una octava mayor
+00027c 3068      	cpi octava, 8
+00027d f009      	breq sigue_sw8
+00027e 9563      	inc octava
+          sigue_sw8:
+00027f df3f      	rcall Get_Octava
+000280 e000      	ldi r16, 0
+000281 0fe0      	add zl, r16
+000282 1ff0      	adc zh, r16
+000283 91a5      	lpm xl, z+
+000284 91b4      	lpm xh, z
+000285 eae2      	ldi zl, low(nota1*2)
+000286 e0f0      	ldi zh, high(nota1*2)
+000287 c01a      	rjmp fin_sw
+         	
+          sw9:
+000288 3068      	cpi octava,8
+000289 f009      	breq sigue_sw9
+00028a 9563      	inc octava
+          sigue_sw9:	
+00028b df33      	rcall Get_Octava
+00028c e002      	ldi r16, 2
+00028d 0fe0      	add zl, r16
+00028e e000      	ldi r16, 0
+00028f 1ff0      	adc zh, r16
+000290 91a5      	lpm xl, z+
+000291 91b4      	lpm xh, z
+000292 ebe2      	ldi zl, low(nota2*2)
+000293 e0f0      	ldi zh, high(nota2*2)
+000294 c00d      	rjmp fin_sw
+         	
+          sw10:
+000295 3068      	cpi octava, 8
+000296 f009      	breq sigue_sw10
+000297 9563      	inc octava
+          sigue_sw10:
+000298 df26      	rcall Get_Octava
+000299 e004      	ldi r16, 4
+00029a 0fe0      	add zl, r16
+00029b e000      	ldi r16, 0
+00029c 1ff0      	adc zh, r16
+00029d 91a5      	lpm xl, z+
+00029e 91b4      	lpm xh, z
+00029f ece2      	ldi zl, low(nota3*2)
+0002a0 e0f0      	ldi zh, high(nota3*2)
+0002a1 c000      	rjmp fin_sw
+         		
+          fin_sw:
+         	; hasta el momento
+         	; Z = nombre de la nota (Re, Mi ..)
+         	; X = freq lista para OCR1ah
+         	; temp_oct_text = texto de "Octava.."
+         	
+0002a2 e850         ldi instruccion, $80
+0002a3 dee1      	rcall WriteIR
+         	
+         	;Mandamos el nombre de la nota que se encuentra		
+0002a4 e100      	ldi r16, 16
+          	nombre_nota:
+         
+0002a5 def9      	rcall CheckBF
+0002a6 9145      	lpm dato, Z+
+0002a7 dee9      	rcall WriteDR
+0002a8 950a      	dec r16
+0002a9 3000         cpi r16, 0       ;solo mandamos 16 caracteres
+0002aa f7d1         brne nombre_nota
+         
+         ;Aqui comienza la instruccion para escribir en la linea2
+         	
+            ;El inicio de la linea2 es 80h + 40h = C0h
+         
+0002ab def3         rcall CheckBF
+         
+0002ac ec50         ldi instruccion, $C0
+0002ad ded7      	rcall WriteIR
+         	
+         	;Mandamos el numero de octava actual
+0002ae e100      	ldi r16, 16
+0002af 2ff3      	mov zh, temp_oct_texth
+0002b0 2fe2      	mov zl, temp_oct_textl
+         	
+          	numero_octava:
+         	
+0002b1 deed      	rcall CheckBF
+0002b2 9145      	lpm dato, Z+
+0002b3 dedd      	rcall WriteDR
+0002b4 950a      	dec r16
+0002b5 3000         cpi r16, 0
+0002b6 f7d1         brne numero_octava
+         	
+         	;Mandamos la nota correspondiente por el parlante
+0002b7 bdbb      	out OCR1AH, xh
+0002b8 bdaa      	out OCR1AL, xl
+         
+         		
+         	
+0002b9 916f      	pop octava
+0002ba 9508      	ret
+         	
+         	
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+
+Assembly complete with no errors.

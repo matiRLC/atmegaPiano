@@ -1,3 +1,5 @@
+View this project on [CADLAB.io](https://cadlab.io/project/1201). 
+
 # atmegaPiano
 The piano has 10 contact switches that are used as piano keys, two buttons, an LCD screen, and its brightness knob. The buttons allow you to switch octaves in order to get
 more sounds out of the limited 10 keys.
